@@ -1,0 +1,58 @@
+import { MobileApp } from '../types/app';
+
+export const MOCK_APPS: MobileApp[] = [
+  {
+    id: 'com.facebook.katana',
+    name: 'Facebook',
+    category: 'Social Media',
+    iconName: 'logo-facebook',
+    iconColor: '#1877F2',
+    todayUsageMinutes: 94,
+    weeklyUsageMinutes: [80, 95, 110, 85, 120, 94, 60],
+  },
+  {
+    id: 'com.instagram.android',
+    name: 'Instagram',
+    category: 'Social Media',
+    iconName: 'logo-instagram',
+    iconColor: '#E4405F',
+    todayUsageMinutes: 112,
+    weeklyUsageMinutes: [100, 130, 90, 140, 105, 112, 85],
+  },
+  {
+    id: 'com.google.android.youtube',
+    name: 'YouTube',
+    category: 'Entertainment',
+    iconName: 'logo-youtube',
+    iconColor: '#FF0000',
+    todayUsageMinutes: 145,
+    weeklyUsageMinutes: [120, 160, 180, 130, 150, 145, 110],
+  },
+  {
+    id: 'com.zhiliaoapp.musically',
+    name: 'TikTok',
+    category: 'Social Media',
+    iconName: 'videocam',
+    iconColor: '#00F2FE',
+    todayUsageMinutes: 78,
+    weeklyUsageMinutes: [60, 85, 90, 70, 100, 78, 50],
+  },
+  {
+    id: 'com.supercell.clashofclans',
+    name: 'Gaming Hub',
+    category: 'Gaming',
+    iconName: 'game-controller',
+    iconColor: '#FFB703',
+    todayUsageMinutes: 45,
+    weeklyUsageMinutes: [30, 50, 60, 40, 55, 45, 20],
+  },
+  {
+    id: 'com.amazon.mShop.android.shopping',
+    name: 'Amazon',
+    category: 'Shopping',
+    iconName: 'cart',
+    iconColor: '#FF9900',
+    todayUsageMinutes: 28,
+    weeklyUsageMinutes: [20, 35, 15, 40, 25, 28, 10],
+  },
+];
