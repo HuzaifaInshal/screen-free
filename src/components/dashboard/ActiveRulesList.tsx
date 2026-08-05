@@ -82,11 +82,11 @@ export const ActiveRulesList: React.FC<ActiveRulesListProps> = ({
               </View>
 
               <View style={styles.infoBox}>
-                <View style={styles.titleRow}>
-                  <Text style={styles.ruleName} numberOfLines={1}>
-                    {rule.name}
-                  </Text>
-                  <Badge label={rule.modeType.replace('_', ' ')} color={color} />
+                <Text style={styles.ruleName}>
+                  {rule.name}
+                </Text>
+                <View style={styles.badgeRow}>
+                  <Badge label={rule.modeType.replace(/_/g, ' ')} color={color} />
                 </View>
                 <Text style={styles.ruleSub}>{getRuleSummaryText(rule)}</Text>
               </View>
@@ -180,22 +180,17 @@ const styles = StyleSheet.create({
   infoBox: {
     flex: 1,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  badgeRow: {
+    marginVertical: 4,
   },
   ruleName: {
     color: COLORS.textPrimary,
     fontSize: FONTS.size.md,
     fontWeight: FONTS.weight.bold,
-    flex: 1,
-    marginRight: 4,
   },
   ruleSub: {
     color: COLORS.textSecondary,
     fontSize: FONTS.size.xs,
-    marginTop: 2,
   },
   actionCol: {
     alignItems: 'flex-end',
