@@ -29,18 +29,24 @@ export function evaluateActiveRules(
     const matchesApp = rule.targetAppIds.includes('ALL') || rule.targetAppIds.includes(appId);
     if (!matchesApp && appId !== 'ALL') continue;
 
-    // 1. SIMPLE_SCHEDULE MODE EVALUATION
+    // 1. SIMPLE_SCHEDULE MODE EVALUATION (Supports multiple time windows)
     if (rule.modeType === 'SIMPLE_SCHEDULE' && rule.scheduleConfig) {
-      const { startHour, endHour, daysOfWeek } = rule.scheduleConfig;
+      const { windows, startHour, endHour, daysOfWeek } = rule.scheduleConfig;
       if (daysOfWeek.includes(currentDay)) {
-        if (isHourInRange(currentHour, startHour, endHour)) {
-          return {
-            isRestricted: true,
-            activeRuleName: rule.name,
-            activeRuleId: rule.id,
-            modeType: 'SIMPLE_SCHEDULE',
-            reason: `Restricted during ${rule.name} schedule (${startHour}:00 - ${endHour}:00)`,
-          };
+        const windowList = (windows && windows.length > 0)
+          ? windows
+          : [{ id: '1', startHour: startHour ?? 0, startMinute: 0, endHour: endHour ?? 0, endMinute: 0 }];
+
+        for (const win of windowList) {
+          if (isHourInRange(currentHour, win.startHour, win.endHour)) {
+            return {
+              isRestricted: true,
+              activeRuleName: rule.name,
+              activeRuleId: rule.id,
+              modeType: 'SIMPLE_SCHEDULE',
+              reason: `Restricted during ${rule.name} schedule (${win.startHour}:00 - ${win.endHour}:00)`,
+            };
+          }
         }
       }
     }
@@ -64,9 +70,8 @@ export function evaluateActiveRules(
         // Active slot limit check
         if (activeSlotHours.includes(currentHour)) {
           if (slotLimitMinutes && slotLimitMinutes > 0) {
-            // Check if current slot usage exceeds allowed slot limit
             return {
-              isRestricted: false, // Slot is active, user is within quota slot window
+              isRestricted: false,
               activeRuleName: rule.name,
               activeRuleId: rule.id,
               modeType: 'PER_TIMEFRAME_QUOTA',
@@ -121,12 +126,19 @@ export function generateCombined24HourMatrix(
       // Simple schedule check
       if (rule.modeType === 'SIMPLE_SCHEDULE' && rule.scheduleConfig) {
         if (rule.scheduleConfig.daysOfWeek.includes(dayOfWeek)) {
-          if (isHourInRange(hour, rule.scheduleConfig.startHour, rule.scheduleConfig.endHour)) {
-            isRestricted = true;
-            modeType = 'SIMPLE_SCHEDULE';
-            allowedQuotaMinutes = 0;
-            break; // Hard restriction takes precedence
+          const windowList = (rule.scheduleConfig.windows && rule.scheduleConfig.windows.length > 0)
+            ? rule.scheduleConfig.windows
+            : [{ id: '1', startHour: rule.scheduleConfig.startHour ?? 0, startMinute: 0, endHour: rule.scheduleConfig.endHour ?? 0, endMinute: 0 }];
+
+          for (const win of windowList) {
+            if (isHourInRange(hour, win.startHour, win.endHour)) {
+              isRestricted = true;
+              modeType = 'SIMPLE_SCHEDULE';
+              allowedQuotaMinutes = 0;
+              break;
+            }
           }
+          if (isRestricted) break;
         }
       }
 

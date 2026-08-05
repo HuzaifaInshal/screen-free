@@ -42,7 +42,13 @@ export const ActiveRulesList: React.FC<ActiveRulesListProps> = ({
 
   const getRuleSummaryText = (rule: RestrictionRule) => {
     if (rule.modeType === 'SIMPLE_SCHEDULE' && rule.scheduleConfig) {
-      return `Window: ${formatTimeWindow(rule.scheduleConfig.startHour, rule.scheduleConfig.endHour)}`;
+      const windows = rule.scheduleConfig.windows;
+      if (windows && windows.length > 1) {
+        return `${windows.length} Time Windows (${windows.map(w => formatTimeWindow(w.startHour, w.endHour)).join(', ')})`;
+      }
+      const start = windows && windows[0] ? windows[0].startHour : (rule.scheduleConfig.startHour ?? 18);
+      const end = windows && windows[0] ? windows[0].endHour : (rule.scheduleConfig.endHour ?? 6);
+      return `Window: ${formatTimeWindow(start, end)}`;
     }
     if (rule.modeType === 'PER_TIMEFRAME_QUOTA' && rule.quotaConfig) {
       return `Quota: ${Math.floor(rule.quotaConfig.dailyLimitMinutes / 60)}h daily (${rule.quotaConfig.activeSlotHours.length} slots active)`;

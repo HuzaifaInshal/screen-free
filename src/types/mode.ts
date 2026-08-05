@@ -5,11 +5,20 @@ export type LimitingModeType =
 
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0=Sunday, 1=Monday ... 6=Saturday
 
-export interface SimpleScheduleConfig {
+export interface TimeWindow {
+  id: string;
   startHour: number;   // 0-23 (e.g. 18 for 6 PM)
   startMinute: number; // 0-59
   endHour: number;     // 0-23 (e.g. 6 for 6 AM)
   endMinute: number;   // 0-59
+}
+
+export interface SimpleScheduleConfig {
+  windows?: TimeWindow[]; // Multiple time windows support (e.g. [{9AM-12PM}, {6PM-6AM}])
+  startHour?: number;    // Backward compatibility
+  startMinute?: number;  // Backward compatibility
+  endHour?: number;      // Backward compatibility
+  endMinute?: number;    // Backward compatibility
   daysOfWeek: DayOfWeek[];
 }
 

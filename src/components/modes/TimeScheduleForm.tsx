@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
-import { SimpleScheduleConfig, DayOfWeek } from '../../types/mode';
+import { SimpleScheduleConfig, DayOfWeek, TimeWindow } from '../../types/mode';
 import { TimeRangePicker } from '../visualizers/TimeRangePicker';
 import { DayOfWeekPicker } from '../visualizers/DayOfWeekPicker';
 import { AppSelectorGrid } from '../visualizers/AppSelectorGrid';
@@ -19,10 +19,9 @@ export const TimeScheduleForm: React.FC<TimeScheduleFormProps> = ({
   initialName = 'Simple Evening Window',
   initialAppIds = ['ALL'],
   initialConfig = {
-    startHour: 18, // 6 PM
-    startMinute: 0,
-    endHour: 6,   // 6 AM
-    endMinute: 0,
+    windows: [
+      { id: 'win-1', startHour: 18, startMinute: 0, endHour: 6, endMinute: 0 }
+    ],
     daysOfWeek: [0, 1, 2, 3, 4, 5, 6],
   },
   onSubmit,
@@ -30,8 +29,21 @@ export const TimeScheduleForm: React.FC<TimeScheduleFormProps> = ({
 }) => {
   const [ruleName, setRuleName] = useState(initialName);
   const [selectedApps, setSelectedApps] = useState<string[]>(initialAppIds);
-  const [startHour, setStartHour] = useState(initialConfig.startHour);
-  const [endHour, setEndHour] = useState(initialConfig.endHour);
+
+  const initialWindowsList: TimeWindow[] =
+    initialConfig?.windows && initialConfig.windows.length > 0
+      ? initialConfig.windows
+      : [
+          {
+            id: 'win-1',
+            startHour: initialConfig?.startHour ?? 18,
+            startMinute: 0,
+            endHour: initialConfig?.endHour ?? 6,
+            endMinute: 0,
+          },
+        ];
+
+  const [windows, setWindows] = useState<TimeWindow[]>(initialWindowsList);
   const [daysOfWeek, setDaysOfWeek] = useState<DayOfWeek[]>(initialConfig.daysOfWeek);
 
   const handleSubmit = () => {
@@ -39,9 +51,10 @@ export const TimeScheduleForm: React.FC<TimeScheduleFormProps> = ({
       name: ruleName.trim() || 'Simple Time Schedule',
       targetAppIds: selectedApps,
       config: {
-        startHour,
+        windows,
+        startHour: windows[0]?.startHour ?? 18,
         startMinute: 0,
-        endHour,
+        endHour: windows[0]?.endHour ?? 6,
         endMinute: 0,
         daysOfWeek,
       },
@@ -60,12 +73,8 @@ export const TimeScheduleForm: React.FC<TimeScheduleFormProps> = ({
       />
 
       <TimeRangePicker
-        startHour={startHour}
-        endHour={endHour}
-        onRangeChange={(start, end) => {
-          setStartHour(start);
-          setEndHour(end);
-        }}
+        windows={windows}
+        onWindowsChange={setWindows}
       />
 
       <DayOfWeekPicker
