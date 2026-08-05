@@ -17,7 +17,11 @@
       "adaptiveIcon": {
         "backgroundColor": "#0b0d19"
       },
-      "package": "com.huzaifainshal.screenfree"
+      "package": "com.huzaifainshal.screenfree",
+      "permissions": [
+        "SYSTEM_ALERT_WINDOW",
+        "PACKAGE_USAGE_STATS"
+      ]
     },
     "extra": {
       "eas": {
