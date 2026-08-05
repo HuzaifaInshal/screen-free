@@ -2,14 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { RestrictionRule } from '../types/mode';
 import { EmergencyOverrideState } from '../types/analytics';
 import { MobileApp, AppCollection, AppCategory } from '../types/app';
-import { MOCK_APPS, DEFAULT_COLLECTIONS } from '../constants/mockApps';
 import { storage } from '../utils/storage';
 import { PRESET_RULES } from '../constants/presetRules';
+import { fetchRealInstalledApps } from '../utils/installedApps';
 
 export function useRestrictionStore() {
   const [rules, setRules] = useState<RestrictionRule[]>([]);
-  const [apps, setApps] = useState<MobileApp[]>(MOCK_APPS);
-  const [collections, setCollections] = useState<AppCollection[]>(DEFAULT_COLLECTIONS);
+  const [apps, setApps] = useState<MobileApp[]>([]);
+  const [collections, setCollections] = useState<AppCollection[]>([]);
   const [override, setOverride] = useState<EmergencyOverrideState>({
     isActive: false,
     expiresAt: null,
@@ -25,10 +25,17 @@ export function useRestrictionStore() {
       const loadedOverride = await storage.getOverrideState();
       const loadedCollections = await storage.getCollections();
       const loadedApps = await storage.getApps();
+      const realInstalled = await fetchRealInstalledApps();
+
+      // Merge real installed apps with any custom user created apps
+      const existingIds = new Set(realInstalled.map(a => a.id));
+      const customApps = loadedApps.filter(a => a.isCustom && !existingIds.has(a.id));
+      const combined = [...realInstalled, ...customApps];
+
       setRules(loadedRules);
       setOverride(loadedOverride);
       setCollections(loadedCollections);
-      setApps(loadedApps);
+      setApps(combined);
       setIsLoading(false);
     }
     loadData();
@@ -118,8 +125,8 @@ export function useRestrictionStore() {
   }, [apps, saveAppsState]);
 
   const resetToPresets = useCallback(async () => {
-    await saveRulesState(PRESET_RULES);
-    await saveCollectionsState(DEFAULT_COLLECTIONS);
+    await saveRulesState([]);
+    await saveCollectionsState([]);
   }, [saveRulesState, saveCollectionsState]);
 
   // Override Handlers

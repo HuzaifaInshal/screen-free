@@ -5,11 +5,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { HomeScreen } from '../screens/HomeScreen';
 import { RulesManagerScreen } from '../screens/RulesManagerScreen';
 import { CombinedTimelineScreen } from '../screens/CombinedTimelineScreen';
+import { CollectionsScreen } from '../screens/CollectionsScreen';
 import { AnalyticsScreen } from '../screens/AnalyticsScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { COLORS, RADIUS, SPACING, FONTS } from '../constants/theme';
 
-export type TabName = 'Home' | 'AddRule' | 'Timeline' | 'Analytics' | 'Settings';
+export type TabName = 'Home' | 'Timeline' | 'Collections' | 'AddRule' | 'Analytics' | 'Settings';
 
 interface TabItem {
   name: TabName;
@@ -21,6 +22,7 @@ interface TabItem {
 const TABS: TabItem[] = [
   { name: 'Home', label: 'Home', icon: 'home-outline', activeIcon: 'home' },
   { name: 'Timeline', label: 'Timeline', icon: 'calendar-outline', activeIcon: 'calendar' },
+  { name: 'Collections', label: 'Groups', icon: 'folder-open-outline', activeIcon: 'folder-open' },
   { name: 'AddRule', label: 'Add Mode', icon: 'add-circle-outline', activeIcon: 'add-circle' },
   { name: 'Analytics', label: 'Analytics', icon: 'bar-chart-outline', activeIcon: 'bar-chart' },
   { name: 'Settings', label: 'Settings', icon: 'settings-outline', activeIcon: 'settings' },
@@ -58,6 +60,8 @@ export const BottomTabNavigator: React.FC = () => {
         );
       case 'Timeline':
         return <CombinedTimelineScreen />;
+      case 'Collections':
+        return <CollectionsScreen />;
       case 'AddRule':
         return (
           <RulesManagerScreen

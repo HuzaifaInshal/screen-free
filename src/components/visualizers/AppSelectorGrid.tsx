@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRestrictionStore } from '../../hooks/useRestrictionStore';
 import { COLORS, RADIUS, SPACING, FONTS } from '../../constants/theme';
-import { Modal } from '../common/Modal';
-import { Button } from '../common/Button';
-import { AppCategory } from '../../types/app';
 
 interface AppSelectorGridProps {
   selectedAppIds: string[];
@@ -16,11 +13,8 @@ export const AppSelectorGrid: React.FC<AppSelectorGridProps> = ({
   selectedAppIds,
   onChange,
 }) => {
-  const { apps, collections, addCustomApp } = useRestrictionStore();
+  const { apps, collections } = useRestrictionStore();
   const [activeTab, setActiveTab] = useState<'COLLECTIONS' | 'APPS'>('COLLECTIONS');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [customAppName, setCustomAppName] = useState('');
-  const [customCategory, setCustomCategory] = useState<AppCategory>('Social Media');
 
   const isAllSelected = selectedAppIds.includes('ALL');
 
@@ -65,14 +59,6 @@ export const AppSelectorGrid: React.FC<AppSelectorGridProps> = ({
     }
   };
 
-  const handleAddCustomAppSubmit = async () => {
-    if (!customAppName.trim()) return;
-    const newApp = await addCustomApp(customAppName.trim(), customCategory);
-    toggleApp(newApp.id);
-    setCustomAppName('');
-    setIsAddModalOpen(false);
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
@@ -112,7 +98,7 @@ export const AppSelectorGrid: React.FC<AppSelectorGridProps> = ({
             style={{ marginRight: 4 }}
           />
           <Text style={[styles.tabText, activeTab === 'APPS' && styles.tabTextActive]}>
-            Individual Apps ({apps.length})
+            Installed Apps ({apps.length})
           </Text>
         </TouchableOpacity>
       </View>
@@ -164,9 +150,13 @@ export const AppSelectorGrid: React.FC<AppSelectorGridProps> = ({
                   isSelected && { borderColor: app.iconColor, backgroundColor: `${app.iconColor}20` },
                 ]}
               >
-                <View style={[styles.iconBg, { backgroundColor: app.iconColor }]}>
-                  <Ionicons name={app.iconName as any} size={18} color="#ffffff" />
-                </View>
+                {app.iconUri ? (
+                  <Image source={{ uri: app.iconUri }} style={styles.appIconImage} />
+                ) : (
+                  <View style={[styles.iconBg, { backgroundColor: app.iconColor }]}>
+                    <Ionicons name={app.iconName as any} size={18} color="#ffffff" />
+                  </View>
+                )}
                 <Text style={styles.appName} numberOfLines={1}>
                   {app.name}
                 </Text>
@@ -180,48 +170,6 @@ export const AppSelectorGrid: React.FC<AppSelectorGridProps> = ({
           })}
         </View>
       )}
-
-      {/* Add Custom App Button */}
-      <TouchableOpacity
-        style={styles.addCustomBtn}
-        onPress={() => setIsAddModalOpen(true)}
-      >
-        <Ionicons name="add-circle-outline" size={18} color={COLORS.primary} style={{ marginRight: 6 }} />
-        <Text style={styles.addCustomBtnText}>+ Add Any Custom App Installed On Phone</Text>
-      </TouchableOpacity>
-
-      {/* Modal for adding custom app */}
-      <Modal
-        visible={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        title="Add Custom Mobile App"
-      >
-        <Text style={styles.modalDesc}>
-          Type the name of any app installed on your phone to add it to your Screen Free restriction list.
-        </Text>
-        <TextInput
-          style={styles.modalInput}
-          value={customAppName}
-          onChangeText={setCustomAppName}
-          placeholder="e.g. Snapchat, Slack, Discord, Clash Royale"
-          placeholderTextColor={COLORS.textMuted}
-        />
-        <View style={styles.modalBtnRow}>
-          <Button
-            title="Cancel"
-            variant="outline"
-            onPress={() => setIsAddModalOpen(false)}
-            style={{ flex: 1, marginRight: SPACING.xs }}
-          />
-          <Button
-            title="Add App"
-            variant="primary"
-            icon="checkmark"
-            onPress={handleAddCustomAppSubmit}
-            style={{ flex: 1.5, marginLeft: SPACING.xs }}
-          />
-        </View>
-      </Modal>
     </View>
   );
 };
@@ -326,6 +274,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  appIconImage: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+  },
   appName: {
     flex: 1,
     color: COLORS.textPrimary,
@@ -335,40 +288,5 @@ const styles = StyleSheet.create({
   },
   checkIcon: {
     marginLeft: 2,
-  },
-  addCustomBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 242, 254, 0.08)',
-    borderRadius: RADIUS.sm,
-    paddingVertical: SPACING.xs + 4,
-    marginTop: SPACING.xs,
-    borderWidth: 1,
-    borderColor: COLORS.borderGlow,
-    borderStyle: 'dashed',
-  },
-  addCustomBtnText: {
-    color: COLORS.primary,
-    fontSize: FONTS.size.xs,
-    fontWeight: FONTS.weight.bold,
-  },
-  modalDesc: {
-    color: COLORS.textSecondary,
-    fontSize: FONTS.size.xs,
-    marginBottom: SPACING.md,
-  },
-  modalInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderWidth: 1,
-    borderColor: COLORS.borderSubtle,
-    borderRadius: RADIUS.sm,
-    padding: SPACING.sm + 2,
-    color: COLORS.textPrimary,
-    fontSize: FONTS.size.md,
-    marginBottom: SPACING.md,
-  },
-  modalBtnRow: {
-    flexDirection: 'row',
   },
 });

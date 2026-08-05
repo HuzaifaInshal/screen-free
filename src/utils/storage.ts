@@ -1,29 +1,23 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RestrictionRule } from '../types/mode';
-import { PRESET_RULES } from '../constants/presetRules';
 import { EmergencyOverrideState } from '../types/analytics';
 import { MobileApp, AppCollection } from '../types/app';
-import { MOCK_APPS, DEFAULT_COLLECTIONS } from '../constants/mockApps';
 
 const STORAGE_KEYS = {
-  RULES: '@screen_free_rules_v1',
-  OVERRIDE: '@screen_free_override_v1',
-  COLLECTIONS: '@screen_free_collections_v1',
-  CUSTOM_APPS: '@screen_free_custom_apps_v1',
+  RULES: '@screen_free_rules_v2',
+  OVERRIDE: '@screen_free_override_v2',
+  COLLECTIONS: '@screen_free_collections_v2',
+  CUSTOM_APPS: '@screen_free_custom_apps_v2',
 };
 
 export const storage = {
   async getRules(): Promise<RestrictionRule[]> {
     try {
       const json = await AsyncStorage.getItem(STORAGE_KEYS.RULES);
-      if (!json) {
-        await AsyncStorage.setItem(STORAGE_KEYS.RULES, JSON.stringify(PRESET_RULES));
-        return PRESET_RULES;
-      }
+      if (!json) return [];
       return JSON.parse(json);
     } catch (e) {
-      console.error('Failed to load rules from storage', e);
-      return PRESET_RULES;
+      return [];
     }
   },
 
@@ -32,7 +26,6 @@ export const storage = {
       await AsyncStorage.setItem(STORAGE_KEYS.RULES, JSON.stringify(rules));
       return true;
     } catch (e) {
-      console.error('Failed to save rules to storage', e);
       return false;
     }
   },
@@ -40,13 +33,10 @@ export const storage = {
   async getCollections(): Promise<AppCollection[]> {
     try {
       const json = await AsyncStorage.getItem(STORAGE_KEYS.COLLECTIONS);
-      if (!json) {
-        await AsyncStorage.setItem(STORAGE_KEYS.COLLECTIONS, JSON.stringify(DEFAULT_COLLECTIONS));
-        return DEFAULT_COLLECTIONS;
-      }
+      if (!json) return [];
       return JSON.parse(json);
     } catch (e) {
-      return DEFAULT_COLLECTIONS;
+      return [];
     }
   },
 
@@ -62,16 +52,10 @@ export const storage = {
   async getApps(): Promise<MobileApp[]> {
     try {
       const json = await AsyncStorage.getItem(STORAGE_KEYS.CUSTOM_APPS);
-      if (!json) {
-        return MOCK_APPS;
-      }
-      const customApps: MobileApp[] = JSON.parse(json);
-      // Merge with MOCK_APPS
-      const existingIds = new Set(MOCK_APPS.map(a => a.id));
-      const filteredCustom = customApps.filter(a => !existingIds.has(a.id));
-      return [...MOCK_APPS, ...filteredCustom];
+      if (!json) return [];
+      return JSON.parse(json);
     } catch (e) {
-      return MOCK_APPS;
+      return [];
     }
   },
 

@@ -12,11 +12,12 @@ export interface MobileApp {
   id: string;             // unique app bundle identifier
   name: string;           // e.g. "Facebook", "Instagram", "YouTube"
   category: AppCategory;  // e.g. "Social Media"
-  iconName: string;       // Vector icon name
+  iconName: string;       // Vector icon fallback name
   iconColor: string;      // Accent color
+  iconUri?: string;       // Real mobile device app icon (base64 image URI)
   todayUsageMinutes: number; // Current day accumulated usage
   weeklyUsageMinutes: number[]; // Last 7 days usage array
-  isCustom?: boolean;     // Added by user
+  isCustom?: boolean;     // Flag for custom user apps
 }
 
 export interface AppCollection {
