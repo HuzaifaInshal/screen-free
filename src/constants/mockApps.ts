@@ -1,4 +1,4 @@
-import { MobileApp } from '../types/app';
+import { MobileApp, AppCollection } from '../types/app';
 
 export const MOCK_APPS: MobileApp[] = [
   {
@@ -38,6 +38,42 @@ export const MOCK_APPS: MobileApp[] = [
     weeklyUsageMinutes: [60, 85, 90, 70, 100, 78, 50],
   },
   {
+    id: 'com.twitter.android',
+    name: 'Twitter / X',
+    category: 'Social Media',
+    iconName: 'logo-twitter',
+    iconColor: '#1DA1F2',
+    todayUsageMinutes: 55,
+    weeklyUsageMinutes: [40, 60, 50, 70, 45, 55, 30],
+  },
+  {
+    id: 'com.reddit.frontpage',
+    name: 'Reddit',
+    category: 'Social Media',
+    iconName: 'planet-outline',
+    iconColor: '#FF4500',
+    todayUsageMinutes: 62,
+    weeklyUsageMinutes: [50, 70, 60, 80, 55, 62, 40],
+  },
+  {
+    id: 'com.netflix.mediaclient',
+    name: 'Netflix',
+    category: 'Entertainment',
+    iconName: 'tv-outline',
+    iconColor: '#E50914',
+    todayUsageMinutes: 90,
+    weeklyUsageMinutes: [60, 120, 90, 110, 80, 90, 100],
+  },
+  {
+    id: 'com.whatsapp',
+    name: 'WhatsApp',
+    category: 'Communication',
+    iconName: 'logo-whatsapp',
+    iconColor: '#25D366',
+    todayUsageMinutes: 65,
+    weeklyUsageMinutes: [50, 60, 70, 65, 80, 65, 45],
+  },
+  {
     id: 'com.supercell.clashofclans',
     name: 'Gaming Hub',
     category: 'Gaming',
@@ -54,5 +90,38 @@ export const MOCK_APPS: MobileApp[] = [
     iconColor: '#FF9900',
     todayUsageMinutes: 28,
     weeklyUsageMinutes: [20, 35, 15, 40, 25, 28, 10],
+  },
+];
+
+export const DEFAULT_COLLECTIONS: AppCollection[] = [
+  {
+    id: 'col-social',
+    name: 'Social Media Pack',
+    iconName: 'people',
+    color: '#7f00ff',
+    appIds: ['com.facebook.katana', 'com.instagram.android', 'com.zhiliaoapp.musically', 'com.twitter.android', 'com.reddit.frontpage'],
+  },
+  {
+    id: 'col-entertainment',
+    name: 'Streaming & Video',
+    iconName: 'film-outline',
+    color: '#ff0055',
+    appIds: ['com.google.android.youtube', 'com.netflix.mediaclient'],
+  },
+  {
+    id: 'col-distraction',
+    name: 'All Heavy Distractions',
+    iconName: 'warning-outline',
+    color: '#ffb703',
+    appIds: [
+      'com.facebook.katana',
+      'com.instagram.android',
+      'com.google.android.youtube',
+      'com.zhiliaoapp.musically',
+      'com.supercell.clashofclans',
+      'com.twitter.android',
+      'com.reddit.frontpage',
+      'com.netflix.mediaclient'
+    ],
   },
 ];

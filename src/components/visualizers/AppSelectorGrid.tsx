@@ -1,8 +1,11 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MOCK_APPS } from '../../constants/mockApps';
+import { useRestrictionStore } from '../../hooks/useRestrictionStore';
 import { COLORS, RADIUS, SPACING, FONTS } from '../../constants/theme';
+import { Modal } from '../common/Modal';
+import { Button } from '../common/Button';
+import { AppCategory } from '../../types/app';
 
 interface AppSelectorGridProps {
   selectedAppIds: string[];
@@ -13,11 +16,17 @@ export const AppSelectorGrid: React.FC<AppSelectorGridProps> = ({
   selectedAppIds,
   onChange,
 }) => {
+  const { apps, collections, addCustomApp } = useRestrictionStore();
+  const [activeTab, setActiveTab] = useState<'COLLECTIONS' | 'APPS'>('COLLECTIONS');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [customAppName, setCustomAppName] = useState('');
+  const [customCategory, setCustomCategory] = useState<AppCategory>('Social Media');
+
   const isAllSelected = selectedAppIds.includes('ALL');
 
   const toggleAll = () => {
     if (isAllSelected) {
-      onChange([MOCK_APPS[0].id]);
+      onChange([apps[0]?.id || 'com.facebook.katana']);
     } else {
       onChange(['ALL']);
     }
@@ -37,10 +46,37 @@ export const AppSelectorGrid: React.FC<AppSelectorGridProps> = ({
     }
   };
 
+  const toggleCollection = (colAppIds: string[]) => {
+    if (isAllSelected) {
+      onChange(colAppIds);
+      return;
+    }
+
+    const allInColSelected = colAppIds.every(id => selectedAppIds.includes(id));
+
+    if (allInColSelected) {
+      // Remove all apps in collection
+      const next = selectedAppIds.filter(id => !colAppIds.includes(id));
+      onChange(next.length === 0 ? ['ALL'] : next);
+    } else {
+      // Add all apps in collection
+      const merged = Array.from(new Set([...selectedAppIds, ...colAppIds]));
+      onChange(merged);
+    }
+  };
+
+  const handleAddCustomAppSubmit = async () => {
+    if (!customAppName.trim()) return;
+    const newApp = await addCustomApp(customAppName.trim(), customCategory);
+    toggleApp(newApp.id);
+    setCustomAppName('');
+    setIsAddModalOpen(false);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.label}>Target Applications</Text>
+        <Text style={styles.label}>Target Applications & Groups</Text>
         <TouchableOpacity onPress={toggleAll}>
           <Text style={[styles.allText, isAllSelected && { color: COLORS.accent }]}>
             {isAllSelected ? '✓ All Apps Selected' : 'Select All'}
@@ -48,34 +84,144 @@ export const AppSelectorGrid: React.FC<AppSelectorGridProps> = ({
         </TouchableOpacity>
       </View>
 
-      <View style={styles.grid}>
-        {MOCK_APPS.map(app => {
-          const isSelected = isAllSelected || selectedAppIds.includes(app.id);
-          return (
-            <TouchableOpacity
-              key={app.id}
-              onPress={() => toggleApp(app.id)}
-              activeOpacity={0.7}
-              style={[
-                styles.appChip,
-                isSelected && { borderColor: app.iconColor, backgroundColor: `${app.iconColor}20` },
-              ]}
-            >
-              <View style={[styles.iconBg, { backgroundColor: app.iconColor }]}>
-                <Ionicons name={app.iconName as any} size={18} color="#ffffff" />
-              </View>
-              <Text style={styles.appName} numberOfLines={1}>
-                {app.name}
-              </Text>
-              {isSelected && (
-                <View style={styles.checkIcon}>
-                  <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+      {/* Selector Mode Tabs */}
+      <View style={styles.tabRow}>
+        <TouchableOpacity
+          style={[styles.tabChip, activeTab === 'COLLECTIONS' && styles.tabChipActive]}
+          onPress={() => setActiveTab('COLLECTIONS')}
+        >
+          <Ionicons
+            name="folder-open-outline"
+            size={14}
+            color={activeTab === 'COLLECTIONS' ? '#0b0d19' : COLORS.textSecondary}
+            style={{ marginRight: 4 }}
+          />
+          <Text style={[styles.tabText, activeTab === 'COLLECTIONS' && styles.tabTextActive]}>
+            App Collections ({collections.length})
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabChip, activeTab === 'APPS' && styles.tabChipActive]}
+          onPress={() => setActiveTab('APPS')}
+        >
+          <Ionicons
+            name="apps-outline"
+            size={14}
+            color={activeTab === 'APPS' ? '#0b0d19' : COLORS.textSecondary}
+            style={{ marginRight: 4 }}
+          />
+          <Text style={[styles.tabText, activeTab === 'APPS' && styles.tabTextActive]}>
+            Individual Apps ({apps.length})
+          </Text>
+        </TouchableOpacity>
       </View>
+
+      {/* App Collections View */}
+      {activeTab === 'COLLECTIONS' && (
+        <View style={styles.collectionsList}>
+          {collections.map(col => {
+            const isColSelected =
+              !isAllSelected && col.appIds.length > 0 && col.appIds.every(id => selectedAppIds.includes(id));
+            return (
+              <TouchableOpacity
+                key={col.id}
+                onPress={() => toggleCollection(col.appIds)}
+                activeOpacity={0.7}
+                style={[
+                  styles.collectionCard,
+                  isColSelected && { borderColor: col.color, backgroundColor: `${col.color}20` },
+                ]}
+              >
+                <View style={[styles.iconBg, { backgroundColor: col.color }]}>
+                  <Ionicons name={col.iconName as any} size={18} color="#ffffff" />
+                </View>
+                <View style={styles.colInfo}>
+                  <Text style={styles.colName}>{col.name}</Text>
+                  <Text style={styles.colSub}>Group of {col.appIds.length} apps</Text>
+                </View>
+                {isColSelected && (
+                  <Ionicons name="checkmark-circle" size={20} color={COLORS.primary} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
+
+      {/* Individual Installed Apps View */}
+      {activeTab === 'APPS' && (
+        <View style={styles.grid}>
+          {apps.map(app => {
+            const isSelected = isAllSelected || selectedAppIds.includes(app.id);
+            return (
+              <TouchableOpacity
+                key={app.id}
+                onPress={() => toggleApp(app.id)}
+                activeOpacity={0.7}
+                style={[
+                  styles.appChip,
+                  isSelected && { borderColor: app.iconColor, backgroundColor: `${app.iconColor}20` },
+                ]}
+              >
+                <View style={[styles.iconBg, { backgroundColor: app.iconColor }]}>
+                  <Ionicons name={app.iconName as any} size={18} color="#ffffff" />
+                </View>
+                <Text style={styles.appName} numberOfLines={1}>
+                  {app.name}
+                </Text>
+                {isSelected && (
+                  <View style={styles.checkIcon}>
+                    <Ionicons name="checkmark-circle" size={16} color={COLORS.primary} />
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
+
+      {/* Add Custom App Button */}
+      <TouchableOpacity
+        style={styles.addCustomBtn}
+        onPress={() => setIsAddModalOpen(true)}
+      >
+        <Ionicons name="add-circle-outline" size={18} color={COLORS.primary} style={{ marginRight: 6 }} />
+        <Text style={styles.addCustomBtnText}>+ Add Any Custom App Installed On Phone</Text>
+      </TouchableOpacity>
+
+      {/* Modal for adding custom app */}
+      <Modal
+        visible={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title="Add Custom Mobile App"
+      >
+        <Text style={styles.modalDesc}>
+          Type the name of any app installed on your phone to add it to your Screen Free restriction list.
+        </Text>
+        <TextInput
+          style={styles.modalInput}
+          value={customAppName}
+          onChangeText={setCustomAppName}
+          placeholder="e.g. Snapchat, Slack, Discord, Clash Royale"
+          placeholderTextColor={COLORS.textMuted}
+        />
+        <View style={styles.modalBtnRow}>
+          <Button
+            title="Cancel"
+            variant="outline"
+            onPress={() => setIsAddModalOpen(false)}
+            style={{ flex: 1, marginRight: SPACING.xs }}
+          />
+          <Button
+            title="Add App"
+            variant="primary"
+            icon="checkmark"
+            onPress={handleAddCustomAppSubmit}
+            style={{ flex: 1.5, marginLeft: SPACING.xs }}
+          />
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -102,6 +248,61 @@ const styles = StyleSheet.create({
     fontSize: FONTS.size.xs,
     fontWeight: FONTS.weight.semibold,
   },
+  tabRow: {
+    flexDirection: 'row',
+    marginBottom: SPACING.sm,
+  },
+  tabChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.sm + 4,
+    paddingVertical: 6,
+    borderRadius: RADIUS.xs,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    marginRight: SPACING.xs,
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+  },
+  tabChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  tabText: {
+    color: COLORS.textSecondary,
+    fontSize: FONTS.size.xs,
+    fontWeight: FONTS.weight.semibold,
+  },
+  tabTextActive: {
+    color: '#0b0d19',
+    fontWeight: FONTS.weight.bold,
+  },
+  collectionsList: {
+    marginVertical: SPACING.xs,
+  },
+  collectionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    padding: SPACING.sm + 2,
+    marginVertical: 4,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+  },
+  colInfo: {
+    flex: 1,
+    marginLeft: SPACING.xs,
+  },
+  colName: {
+    color: COLORS.textPrimary,
+    fontSize: FONTS.size.sm,
+    fontWeight: FONTS.weight.bold,
+  },
+  colSub: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+    marginTop: 1,
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -124,15 +325,50 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: SPACING.xs,
   },
   appName: {
     flex: 1,
     color: COLORS.textPrimary,
     fontSize: FONTS.size.xs,
     fontWeight: FONTS.weight.medium,
+    marginLeft: SPACING.xs,
   },
   checkIcon: {
     marginLeft: 2,
+  },
+  addCustomBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 242, 254, 0.08)',
+    borderRadius: RADIUS.sm,
+    paddingVertical: SPACING.xs + 4,
+    marginTop: SPACING.xs,
+    borderWidth: 1,
+    borderColor: COLORS.borderGlow,
+    borderStyle: 'dashed',
+  },
+  addCustomBtnText: {
+    color: COLORS.primary,
+    fontSize: FONTS.size.xs,
+    fontWeight: FONTS.weight.bold,
+  },
+  modalDesc: {
+    color: COLORS.textSecondary,
+    fontSize: FONTS.size.xs,
+    marginBottom: SPACING.md,
+  },
+  modalInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+    borderRadius: RADIUS.sm,
+    padding: SPACING.sm + 2,
+    color: COLORS.textPrimary,
+    fontSize: FONTS.size.md,
+    marginBottom: SPACING.md,
+  },
+  modalBtnRow: {
+    flexDirection: 'row',
   },
 });
