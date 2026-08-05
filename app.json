@@ -16,6 +16,12 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0b0d19"
+      },
+      "package": "com.huzaifainshal.screenfree"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "91b9f631-61d9-4ac9-95a0-ba75efc3ab37"
       }
     }
   }
