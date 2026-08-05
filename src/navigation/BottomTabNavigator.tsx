@@ -28,21 +28,43 @@ const TABS: TabItem[] = [
 
 export const BottomTabNavigator: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<TabName>('Home');
+  const [editingRule, setEditingRule] = useState<any>(null);
   const insets = useSafeAreaInsets();
+
+  const handleEditRule = (rule: any) => {
+    setEditingRule(rule);
+    setCurrentTab('AddRule');
+  };
+
+  const handleAddRuleClick = () => {
+    setEditingRule(null);
+    setCurrentTab('AddRule');
+  };
+
+  const handleRuleSaved = () => {
+    setEditingRule(null);
+    setCurrentTab('Home');
+  };
 
   const renderScreen = () => {
     switch (currentTab) {
       case 'Home':
         return (
           <HomeScreen
-            onNavigateToRules={() => setCurrentTab('AddRule')}
+            onNavigateToRules={handleAddRuleClick}
             onNavigateToTimeline={() => setCurrentTab('Timeline')}
+            onEditRule={handleEditRule}
           />
         );
       case 'Timeline':
         return <CombinedTimelineScreen />;
       case 'AddRule':
-        return <RulesManagerScreen onRuleSaved={() => setCurrentTab('Home')} />;
+        return (
+          <RulesManagerScreen
+            editingRule={editingRule}
+            onRuleSaved={handleRuleSaved}
+          />
+        );
       case 'Analytics':
         return <AnalyticsScreen />;
       case 'Settings':
@@ -58,10 +80,14 @@ export const BottomTabNavigator: React.FC = () => {
       <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         {TABS.map(tab => {
           const isActive = currentTab === tab.name;
+          const labelText = tab.name === 'AddRule' && editingRule ? 'Edit Mode' : tab.label;
           return (
             <TouchableOpacity
               key={tab.name}
-              onPress={() => setCurrentTab(tab.name)}
+              onPress={() => {
+                if (tab.name === 'AddRule') handleAddRuleClick();
+                else setCurrentTab(tab.name);
+              }}
               activeOpacity={0.7}
               style={styles.tabBtn}
             >
@@ -83,7 +109,7 @@ export const BottomTabNavigator: React.FC = () => {
                   isActive && styles.activeTabLabel,
                 ]}
               >
-                {tab.label}
+                {labelText}
               </Text>
             </TouchableOpacity>
           );

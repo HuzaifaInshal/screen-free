@@ -6,17 +6,20 @@ import { ActiveRulesList } from '../components/dashboard/ActiveRulesList';
 import { QuickOverrideModal } from '../components/dashboard/QuickOverrideModal';
 import { useRestrictionStore } from '../hooks/useRestrictionStore';
 import { useLiveClock } from '../hooks/useLiveClock';
+import { RestrictionRule } from '../types/mode';
 import { evaluateActiveRules } from '../utils/ruleEngine';
 import { COLORS, SPACING } from '../constants/theme';
 
 interface HomeScreenProps {
   onNavigateToRules: () => void;
   onNavigateToTimeline: () => void;
+  onEditRule?: (rule: RestrictionRule) => void;
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
   onNavigateToRules,
   onNavigateToTimeline,
+  onEditRule,
 }) => {
   const {
     rules,
@@ -72,6 +75,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           onToggleRule={toggleRule}
           onDeleteRule={deleteRule}
           onAddRulePress={onNavigateToRules}
+          onEditRule={onEditRule}
         />
       </ScrollView>
 

@@ -12,6 +12,7 @@ interface ActiveRulesListProps {
   onToggleRule: (ruleId: string) => void;
   onDeleteRule: (ruleId: string) => void;
   onAddRulePress: () => void;
+  onEditRule?: (rule: RestrictionRule) => void;
 }
 
 export const ActiveRulesList: React.FC<ActiveRulesListProps> = ({
@@ -19,6 +20,7 @@ export const ActiveRulesList: React.FC<ActiveRulesListProps> = ({
   onToggleRule,
   onDeleteRule,
   onAddRulePress,
+  onEditRule,
 }) => {
   const getModeIcon = (modeType: string) => {
     switch (modeType) {
@@ -70,8 +72,10 @@ export const ActiveRulesList: React.FC<ActiveRulesListProps> = ({
         rules.map(rule => {
           const color = getModeColor(rule.modeType);
           return (
-            <View
+            <TouchableOpacity
               key={rule.id}
+              activeOpacity={0.85}
+              onPress={() => onEditRule?.(rule)}
               style={[
                 styles.ruleCard,
                 !rule.enabled && styles.disabledCard,
@@ -104,7 +108,7 @@ export const ActiveRulesList: React.FC<ActiveRulesListProps> = ({
                   <Ionicons name="trash-outline" size={16} color={COLORS.textMuted} />
                 </TouchableOpacity>
               </View>
-            </View>
+            </TouchableOpacity>
           );
         })
       )}
